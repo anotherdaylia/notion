@@ -1,0 +1,23 @@
+plugins {
+    id 'java'
+}
+
+group 'dev.lia'
+version '1.0-SNAPSHOT'
+
+sourceCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile group: 'org.lwjgl.lwjgl', name: 'lwjgl', version: lwjglVersion
+    compile group: 'org.lwjgl.lwjgl', name: 'lwjgl_util', version: lwjglVersion
+    // lwjglVersion=3.2.1
+    //compile group: 'org.lwjgl', name: 'lwjgl', version: lwjglVersion
+    //compile group: 'org.lwjgl', name: 'lwjgl-opengl', version: lwjglVersion
+    //compile group: 'org.lwjgl', name: 'lwjgl', version: lwjglVersion, classifier: 'natives-macos'
+    //compile group: 'org.lwjgl', name: 'lwjgl-opengl', version: lwjglVersion, classifier: 'natives-macos'
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+}
