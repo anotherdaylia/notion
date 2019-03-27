@@ -27,7 +27,8 @@ public class MultiThreadedImpl {
         // "Divide" the image into sub images and compute (conquer) the histogram
         for (int i = 0; i < h; i += subImageHeight) {
             for (int j = 0; j < w; j += subImageWidth) {
-                System.out.println(String.format("x:%d, y:%d, w:%d, h:%d", i, j, subImageWidth, subImageHeight));
+                // Debug
+                // System.out.println(String.format("x:%d, y:%d, w:%d, h:%d", i, j, subImageWidth, subImageHeight));
                 BufferedImage subImage = image.getSubimage(j, i, subImageWidth, subImageHeight);
 
                 tasks.add(new RgbHistogramTask(subImage));
@@ -99,19 +100,32 @@ public class MultiThreadedImpl {
                     }
                 }
             } else {
-                BufferedImage leftImage = image.getSubimage(0, 0, w/2, h/2);
-                BufferedImage rightImage = image.getSubimage(0, 0, w/2, h/2);
-                RgbHistogramTask left = new RgbHistogramTask(leftImage);
-                RgbHistogramTask right = new RgbHistogramTask(rightImage);
+                BufferedImage upperLeftImage = image.getSubimage(0, 0, w/2, h/2);
+                BufferedImage upperRightImage = image.getSubimage(w/2, 0, w - w/2, h/2);
+                BufferedImage lowerLeftImage = image.getSubimage(0, h/2, w/2, h - h/2);
+                BufferedImage lowerRightImage = image.getSubimage(w/2, h/2, w - w/2, h - h/2);
 
-                invokeAll(left, right);
-                mergeHistogram(left.getRHistogram(), rHistogram);
-                mergeHistogram(left.getGHistogram(), gHistogram);
-                mergeHistogram(left.getBHistogram(), bHistogram);
+                RgbHistogramTask upperLeft = new RgbHistogramTask(upperLeftImage);
+                RgbHistogramTask upperRight = new RgbHistogramTask(upperRightImage);
+                RgbHistogramTask lowerLeft = new RgbHistogramTask(lowerLeftImage);
+                RgbHistogramTask lowerRight = new RgbHistogramTask(lowerRightImage);
 
-                mergeHistogram(right.getRHistogram(), rHistogram);
-                mergeHistogram(right.getGHistogram(), gHistogram);
-                mergeHistogram(right.getBHistogram(), bHistogram);
+                invokeAll(upperLeft, upperRight, lowerLeft, lowerRight);
+                mergeHistogram(upperLeft.getRHistogram(), rHistogram);
+                mergeHistogram(upperLeft.getGHistogram(), gHistogram);
+                mergeHistogram(upperLeft.getBHistogram(), bHistogram);
+
+                mergeHistogram(upperRight.getRHistogram(), rHistogram);
+                mergeHistogram(upperRight.getGHistogram(), gHistogram);
+                mergeHistogram(upperRight.getBHistogram(), bHistogram);
+
+                mergeHistogram(lowerLeft.getRHistogram(), rHistogram);
+                mergeHistogram(lowerLeft.getGHistogram(), gHistogram);
+                mergeHistogram(lowerLeft.getBHistogram(), bHistogram);
+
+                mergeHistogram(lowerRight.getRHistogram(), rHistogram);
+                mergeHistogram(lowerRight.getGHistogram(), gHistogram);
+                mergeHistogram(lowerRight.getBHistogram(), bHistogram);
             }
         }
     }

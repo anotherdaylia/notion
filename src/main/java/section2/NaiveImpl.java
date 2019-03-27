@@ -31,7 +31,7 @@ public class NaiveImpl {
         printHistogram(gHistogram);
         printHistogram(bHistogram);
 
-        System.out.println("GOT MY HISTOGRAMS");
+        //System.out.println("GOT MY HISTOGRAMS");
     }
 
     public static void printHistogram(int [] hist) {

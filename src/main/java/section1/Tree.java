@@ -12,11 +12,11 @@ public class Tree<T>
         root.data = rootData;
         root.children = new ArrayList<Node<T>>();
     }
+}
 
-    public class Node<T>
-    {
-        public T data;
-        public Node<T> parent;
-        public List<Node<T>> children;
-    }
+class Node<T>
+{
+    public T data;
+    public Node<T> parent;
+    public List<Node<T>> children;
 }
