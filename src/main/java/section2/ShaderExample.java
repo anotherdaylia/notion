@@ -10,6 +10,10 @@ import org.lwjgl.LWJGLException;
 import org.lwjgl.opengl.*;
 import org.lwjgl.util.glu.GLU;
 
+/**
+ * Setup IntelliJ
+ * http://wiki.lwjgl.org/wiki/Setting_Up_LWJGL_with_IntelliJ_IDEA.html
+ */
 public class ShaderExample
 {
     /**
@@ -48,7 +52,7 @@ public class ShaderExample
 
         // do the heavy lifting of loading, compiling and linking
         // the two shaders into a usable shader program
-        shader.init("src/com/whiletrue/example/simpleshader/simple.vertex", "src/com/whiletrue/example/simpleshader/simple.fragment");
+        shader.init("src/main/resources/simple.vertex", "src/main/resources/simple.fragment");
 
         int vaoHandle = constructVertexArrayObject();
 
@@ -146,10 +150,11 @@ public class ShaderExample
     /**
      * main method to run the example
      */
-    public static void main(String[] args) throws LWJGLException
-    {
+    public static void main(String[] args) throws LWJGLException, InterruptedException {
         ShaderExample example = new ShaderExample();
         example.initGl();
         example.run();
+
+        Thread.sleep(100000);
     }
 }
