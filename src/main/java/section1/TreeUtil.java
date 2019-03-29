@@ -2,15 +2,28 @@ package section1;
 
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.PipedReader;
+import java.io.PipedWriter;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class TreeUtil {
+
+    private static final int XOR_KEY = 17;
 
     private static final int BOUND = 100;
 
     public static void main(String[] args) {
-        Tree<Integer> tree = createRandomTree(4);
-        visualize(tree);
+        int [] randomSequence = randomValidIntegers(5);
+        String randomString = Arrays.stream(randomSequence)
+                .mapToObj(String::valueOf)
+                .collect(Collectors.joining(","));
+
+        System.out.println(randomString);
+
+        TreeNode root = makeBinaryTree(randomString);
+        visualize(root);
+        stream(root);
     }
 
     private static int[] randomValidIntegers(int depth) {
@@ -21,7 +34,7 @@ public class TreeUtil {
         int length = (1 << depth) - 1;
         int[] index = new int[length];
         for (int i = 0; i < index.length; ++i) {
-            index[i] = random.nextInt(BOUND);
+            index[i] = random.nextInt(BOUND) + 2;
         }
 
         // TODO: Randomly pick a few indices and set them the their children to null;
@@ -30,39 +43,137 @@ public class TreeUtil {
         return index;
     }
 
+    public enum TraversalMode {
+        LEVEL_ORDER, PRE_ORDER, IN_ORDER, POST_ORDER
+    }
+
+    public static void treeTraversal(TreeNode tree, TraversalMode mode, int XOR_KEY, PipedWriter pw) {
+        assert(tree != null);
+
+        switch(mode) {
+            case PRE_ORDER:
+                preOrder(tree, XOR_KEY, pw);
+                break;
+            case IN_ORDER:
+                inOrder(tree, XOR_KEY, pw);
+                break;
+            case POST_ORDER:
+            case LEVEL_ORDER:
+                throw new UnsupportedOperationException(mode + " is not supported");
+        }
+    }
+
+    private static void encryptAndWrite(int value, int XOR_KEY, PipedWriter pw) {
+        try {
+            pw.write(value ^ XOR_KEY);
+            pw.flush();
+            Thread.sleep(300);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static void preOrder(TreeNode node, int XOR_KEY, PipedWriter pw) {
+
+        if (node == null) {
+            return;
+        }
+
+        encryptAndWrite(node.val, XOR_KEY, pw);
+
+        if (node.left != null) {
+            preOrder(node.left, XOR_KEY, pw);
+        }
+
+        if (node.right != null) {
+            preOrder(node.right, XOR_KEY, pw);
+        }
+    }
+
+    private static void inOrder(TreeNode node, int XOR_KEY, PipedWriter pw) {
+
+        if (node == null) {
+            return;
+        }
+
+        if (node.left != null) {
+            inOrder(node.left, XOR_KEY, pw);
+        }
+
+        encryptAndWrite(node.val, XOR_KEY, pw);
+
+        if (node.right != null) {
+            inOrder(node.right, XOR_KEY, pw);
+        }
+    }
+
+    public static TreeNode buildTreeFromPreorder(int[] preorder, int[] inorder) {
+        if (inorder == null || preorder == null || inorder.length == 0 || preorder.length == 0) {
+            return null;
+        }
+
+        int rootValue = preorder[0];
+
+        TreeNode root = new TreeNode(rootValue);
+        if (inorder.length == 1) {
+            return root;
+        }
+
+        Map<Integer, Integer> indexMap = new HashMap<>();
+        for (int i=0; i<inorder.length; ++i) {
+            indexMap.put(inorder[i], i);
+        }
+
+        int rootIndex = indexMap.get(rootValue);
+        // System.out.println("Root Index: " + rootIndex);
+
+        int [] leftInorder  = Arrays.copyOfRange(inorder, 0, rootIndex);
+        int [] rightInorder = Arrays.copyOfRange(inorder, rootIndex + 1, inorder.length);
+        //printList(leftInorder);
+        //printList(rightInorder);
+
+        int [] leftPreorder  = Arrays.copyOfRange(preorder, 1, leftInorder.length+1);
+        int [] rightPreorder = Arrays.copyOfRange(preorder, leftInorder.length+1, preorder.length);
+        //printList(leftPreorder);
+        //printList(rightPreorder);
+
+        root.left  = buildTreeFromPreorder(leftPreorder, leftInorder);
+        root.right = buildTreeFromPreorder(rightPreorder, rightInorder);
+
+        return root;
+    }
 
     // part 1: create a random tree of depth 5
-    public static Tree<Integer> createRandomTree(int depth) {
+    public static TreeNode makeBinaryTree(String serialization) {
+        if ("".equals(serialization)) {
+            return null;
+        }
 
-        //String serialization = randomStringForm(depth);
-        int[] serialization = randomValidIntegers(depth);
-
-        Queue<Integer> nodeValues = new LinkedList<>();
-        for (int token : serialization) {
+        String [] tokens = serialization.split(",");
+        Queue<String> nodeValues = new LinkedList<>();
+        for (String token : tokens) {
             // System.out.print(token + " ");
             nodeValues.offer(token);
         }
-        System.out.println(nodeValues.size());
+        // System.out.println();
 
-        Tree<Integer> tree = new Tree<>(Integer.valueOf(nodeValues.poll()));
+        TreeNode root = new TreeNode(Integer.valueOf(nodeValues.poll()));
 
-        List<Node<Integer>> currentLevel = new LinkedList<>();
-        currentLevel.add(tree.root);
+        List<TreeNode> currentLevel = new LinkedList<>();
+        currentLevel.add(root);
 
+        // while (!currentLevel.isEmpty()) <- this doesn't work with leafs
         while (!nodeValues.isEmpty()) {
-            List<Node<Integer>> nextLevel = new LinkedList<>();
-            for (Node node : currentLevel) {
-
-                Node<Integer> left = toNode(nodeValues.poll());
-                node.children.add(left);
-                if (left != null) {
-                    nextLevel.add(left);
+            List<TreeNode> nextLevel = new LinkedList<>();
+            for (TreeNode node : currentLevel) {
+                node.left = toNode(nodeValues.poll());
+                if (node.left != null) {
+                    nextLevel.add(node.left);
                 }
 
-                Node<Integer> right = toNode(nodeValues.poll());
-                node.children.add(right);
-                if (right != null) {
-                    nextLevel.add(right);
+                node.right = toNode(nodeValues.poll());
+                if (node.right != null) {
+                    nextLevel.add(node.right);
                 }
             }
 
@@ -70,130 +181,75 @@ public class TreeUtil {
             currentLevel.addAll(nextLevel);
         }
 
-        return tree;
-    }
-
-    private static Node<Integer> toNode(Integer value) {
-        if (value != null) {
-            Node<Integer> node = new Node<>();
-            node.data = Integer.valueOf(value);
-            node.children = new ArrayList<>();
-            return node;
-        } else {
-            return null;
-        }
+        return root;
     }
 
     // part 2: visualize a tree
-    public static void visualize(Tree<Integer> tree) {
-        if (tree == null) {
+    public static void visualize(TreeNode root) {
+
+        if (root == null) {
             System.out.println("Tree is empty");
         }
 
-        BTreePrinter.printNode(tree.root);
-    }
-    // part 3: serialize the tree into stream
-    public OutputStream serialize(Tree<Integer> tree) {
-        // level order or
-        // pre-order + delimiter + in-order
-        return null;
+        List<TreeNode> currentLevel = new LinkedList<>();
+        currentLevel.add(root);
+
+        while (!currentLevel.isEmpty()) {
+            List<Integer> values = new LinkedList<>();
+            List<TreeNode> nextLevel = new LinkedList<>();
+
+            for (TreeNode node : currentLevel) {
+                values.add(node.val);
+                if (node.left != null) {
+                    nextLevel.add(node.left);
+                }
+                if (node.right != null) {
+                    nextLevel.add(node.right);
+                }
+            }
+
+            for (int value : values) {
+                System.out.print(value + " ");
+            }
+            System.out.println();
+
+            currentLevel.clear();
+            currentLevel.addAll(nextLevel);
+        }
+
     }
 
-    // part 4: deserialize the stream into a tree
-    public Tree<Integer> deserialize(InputStream is) {
-        // level order or
-        // pre-order + delimiter + in-order
-        return null;
+    // part 3 & 4: serialize the tree into stream / deserialize the stream into a tree
+    public static void stream(TreeNode root) {
+        try {
+            // Create writer and reader instances
+            PipedReader pr = new PipedReader();
+            PipedWriter pw = new PipedWriter();
+
+            // Connect the writer with reader
+            pw.connect(pr);
+
+            Thread thread1 = new Thread(new PipedReaderThread(XOR_KEY, pr));
+            Thread thread2 = new Thread(new PipedWriterThread(root, XOR_KEY, pw));
+
+            // start both threads
+            thread1.start();
+            thread2.start();
+
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static TreeNode toNode(String nodeValue) {
+        // System.out.println("Node Value: " + nodeValue);
+        if (nodeValue == null || "#".equals(nodeValue)) {
+            return null;
+        } else {
+            return new TreeNode(Integer.valueOf(nodeValue));
+        }
     }
 
     // part 5: unit tests
-}
-
-class BTreePrinter {
-
-    public static <T extends Comparable<?>> void printNode(Node<T> root) {
-        int maxLevel = BTreePrinter.maxLevel(root);
-
-        printNodeInternal(Collections.singletonList(root), 1, maxLevel);
-    }
-
-    private static <T extends Comparable<?>> void printNodeInternal(List<Node<T>> nodes, int level, int maxLevel) {
-        if (nodes.isEmpty() || BTreePrinter.isAllElementsNull(nodes))
-            return;
-
-        int floor = maxLevel - level;
-        int endgeLines = (int) Math.pow(2, (Math.max(floor - 1, 0)));
-        int firstSpaces = (int) Math.pow(2, (floor)) - 1;
-        int betweenSpaces = (int) Math.pow(2, (floor + 1)) - 1;
-
-        BTreePrinter.printWhitespaces(firstSpaces);
-
-        List<Node<T>> newNodes = new ArrayList<Node<T>>();
-        for (Node<T> node : nodes) {
-            if (node != null) {
-                System.out.print(node.data);
-                newNodes.addAll(node.children);
-            } else {
-                newNodes.add(null);
-                newNodes.add(null);
-                System.out.print(" ");
-            }
-
-            BTreePrinter.printWhitespaces(betweenSpaces);
-        }
-        System.out.println("");
-
-        for (int i = 1; i <= endgeLines; i++) {
-            for (int j = 0; j < nodes.size(); j++) {
-                BTreePrinter.printWhitespaces(firstSpaces - i);
-                if (nodes.get(j) == null) {
-                    BTreePrinter.printWhitespaces(endgeLines + endgeLines + i + 1);
-                    continue;
-                }
-
-                if (nodes.get(j).children.size() != 0 && nodes.get(j).children.get(0) != null)
-                    System.out.print("/");
-                else
-                    BTreePrinter.printWhitespaces(1);
-
-                BTreePrinter.printWhitespaces(i + i - 1);
-
-                if (nodes.get(j).children.size() != 0 && nodes.get(j).children.get(1) != null)
-                    System.out.print("\\");
-                else
-                    BTreePrinter.printWhitespaces(1);
-
-                BTreePrinter.printWhitespaces(endgeLines + endgeLines - i);
-            }
-
-            System.out.println("");
-        }
-
-        printNodeInternal(newNodes, level + 1, maxLevel);
-    }
-
-    private static void printWhitespaces(int count) {
-        for (int i = 0; i < count; i++)
-            System.out.print(" ");
-    }
-
-    private static <T extends Comparable<?>> int maxLevel(Node<T> node) {
-        if (node == null)
-            return 0;
-
-        if (node.children.size() == 0)
-            return 2;
-
-        return Math.max(BTreePrinter.maxLevel(node.children.get(0)), BTreePrinter.maxLevel(node.children.get(1))) + 1;
-    }
-
-    private static <T> boolean isAllElementsNull(List<T> list) {
-        for (Object object : list) {
-            if (object != null)
-                return false;
-        }
-
-        return true;
-    }
-
 }

@@ -20,3 +20,12 @@ class Node<T>
     public Node<T> parent;
     public List<Node<T>> children;
 }
+
+class TreeNode {
+    public int val;
+    public TreeNode left;
+    public TreeNode right;
+    public TreeNode(int x) {
+        val = x;
+    }
+}
