@@ -27,6 +27,7 @@ class TrafficLight implements State {
         );
     }
 
+    // What a state is supposed to do
     @Override
     public void doAction() {
         try {

@@ -10,14 +10,9 @@ import org.newdawn.slick.Image;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.opengl.Texture;
 import org.newdawn.slick.opengl.TextureLoader;
-import org.newdawn.slick.util.BufferedImageUtil;
 import org.newdawn.slick.util.ResourceLoader;
 
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 
 import static section2.NaiveImpl.printHistogram;
 
@@ -94,8 +89,7 @@ public class GLSLImpl {
 
             int w = image.getWidth();
             int h = image.getHeight();
-
-            System.out.println("Width: " + w + " Height: " + h);
+            //System.out.println("Width: " + w + " Height: " + h);
 
             int[] rHistogram = new int[256];
             int[] gHistogram = new int[256];

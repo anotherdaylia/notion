@@ -1,33 +1,37 @@
 package section1;
 
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.io.PipedReader;
 import java.io.PipedWriter;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class TreeUtil {
 
     private static final int XOR_KEY = 17;
-
     private static final int BOUND = 100;
 
     public static void main(String[] args) {
         int [] randomSequence = randomValidIntegers(5);
-        String randomString = Arrays.stream(randomSequence)
-                .mapToObj(String::valueOf)
-                .collect(Collectors.joining(","));
 
-        System.out.println(randomString);
+        List<String> randomString = new ArrayList<>();
+        for (int i : randomSequence) {
+            randomString.add(String.valueOf(i));
+        }
 
+        // part 1
         TreeNode root = makeBinaryTree(randomString);
+        // part 2
         visualize(root);
+        // part 3 & part 4
         stream(root);
     }
 
+    /*
+    For simplicity, assuming:
+    1. The random tree is a full binary tree, each node has 2 children
+    2. The value of tree node is always a positive number
+     */
     private static int[] randomValidIntegers(int depth) {
-        assert(depth >= 0);
+        assert(depth > 0);
 
         Random random = new Random();
 
@@ -37,7 +41,7 @@ public class TreeUtil {
             index[i] = random.nextInt(BOUND) + 2;
         }
 
-        // TODO: Randomly pick a few indices and set them the their children to null;
+        // TODO: Randomly pick a few indices and set their children to null;
         List<Integer> candidates = null;
 
         return index;
@@ -144,25 +148,17 @@ public class TreeUtil {
     }
 
     // part 1: create a random tree of depth 5
-    public static TreeNode makeBinaryTree(String serialization) {
-        if ("".equals(serialization)) {
-            return null;
-        }
-
-        String [] tokens = serialization.split(",");
+    public static TreeNode makeBinaryTree(List<String> tokens) {
         Queue<String> nodeValues = new LinkedList<>();
         for (String token : tokens) {
-            // System.out.print(token + " ");
             nodeValues.offer(token);
         }
-        // System.out.println();
 
         TreeNode root = new TreeNode(Integer.valueOf(nodeValues.poll()));
 
         List<TreeNode> currentLevel = new LinkedList<>();
         currentLevel.add(root);
 
-        // while (!currentLevel.isEmpty()) <- this doesn't work with leafs
         while (!nodeValues.isEmpty()) {
             List<TreeNode> nextLevel = new LinkedList<>();
             for (TreeNode node : currentLevel) {
@@ -221,6 +217,7 @@ public class TreeUtil {
 
     // part 3 & 4: serialize the tree into stream / deserialize the stream into a tree
     public static void stream(TreeNode root) {
+        if (root == null) return;
         try {
             // Create writer and reader instances
             PipedReader pr = new PipedReader();
@@ -252,4 +249,9 @@ public class TreeUtil {
     }
 
     // part 5: unit tests
+    /*
+    For unit test, mainly see what is the input of each function, and what might cause issues.
+    Part 1: Empty tree
+    Part 3 & 4: Empty tree, negative value tree
+     */
 }

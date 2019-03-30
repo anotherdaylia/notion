@@ -5,29 +5,33 @@ import java.util.List;
 
 public interface TrafficSignal extends CarDetector {
     void startStateTransition();
-    void showState();
 }
 
 class NorthSouthTrafficSignal implements TrafficSignal {
-    private static List<State> states =
+
+    private TrafficLight currentState;
+
+    private List<State> states =
             Arrays.asList(
                     new TrafficLight(Direction.NORTH_SOUTH, StateName.WALK, LightColor.GREEN, 5),
                     new TrafficLight(Direction.NORTH_SOUTH, StateName.WARN, LightColor.YELLOW, 3),
                     new TrafficLight(Direction.NORTH_SOUTH, StateName.STOP, LightColor.RED, 10)
             );
 
-    private State currentState = new TrafficLight(Direction.EAST_WEST, StateName.INIT, LightColor.GREEN, 3);
+    private void reset() {
+        currentState = new TrafficLight(Direction.NORTH_SOUTH, StateName.INIT, LightColor.GREEN, 3);
+    }
+
+    public void setStates(List<State> states) {
+        this.states = states;
+    }
 
     @Override
     public void startStateTransition() {
         for (State state: states) {
             state.doAction();
         }
-    }
-
-    @Override
-    public void showState() {
-        currentState.displayState();
+        reset();
     }
 
     @Override
@@ -41,24 +45,30 @@ class NorthSouthTrafficSignal implements TrafficSignal {
 }
 
 class EastWestTrafficSignal implements TrafficSignal, CarDetector {
-    private static List<State> states =
+
+    private TrafficLight currentState;
+
+    private List<State> states =
             Arrays.asList(
                     new TrafficLight(Direction.EAST_WEST, StateName.WALK, LightColor.GREEN, 7),
                     new TrafficLight(Direction.EAST_WEST, StateName.WARN, LightColor.YELLOW, 3)
             );
 
-    private State currentState = new TrafficLight(Direction.EAST_WEST, StateName.INIT, LightColor.RED, 3);
+    private void reset() {
+        currentState = new TrafficLight(Direction.NORTH_SOUTH, StateName.INIT, LightColor.GREEN, 3);
+    }
+
+    public void setStates(List<State> states) {
+        this.states = states;
+    }
 
     @Override
     public void startStateTransition() {
         for (State state: states) {
             state.doAction();
         }
-    }
-
-    @Override
-    public void showState() {
-        currentState.displayState();
+        // reset
+        reset();
     }
 
     @Override

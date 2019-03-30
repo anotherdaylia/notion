@@ -13,20 +13,21 @@ public class PipedWriterThread implements Runnable {
         this.pw = pw;
     }
 
+    @Override
     public void run() {
         try {
             TreeUtil.treeTraversal(tree, TreeUtil.TraversalMode.PRE_ORDER, XOR_KEY, pw);
-            // Write 0 as a delimiter
+            // For simplicity, write 1 as a delimiter
             pw.write(1 ^ XOR_KEY);
             pw.flush();
             Thread.sleep(300);
 
             TreeUtil.treeTraversal(tree, TreeUtil.TraversalMode.IN_ORDER, XOR_KEY, pw);
-            // Write -1 as a terminator
+            // For simplicity, write 0 as a terminator
             pw.write(0 ^ XOR_KEY);
             pw.flush();
 
-            System.out.println("Done");
+            System.out.println("Done writing");
 
             Thread.sleep(5000);
         } catch (Exception e) {
